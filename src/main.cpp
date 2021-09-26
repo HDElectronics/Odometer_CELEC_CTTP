@@ -15,6 +15,7 @@
 #define TX_BT 8
 #define RX_BT 9
 #define debounce_delay 200
+#define LCD_REFRECH 200
 
 //Instances
 LiquidCrystal_I2C lcd(0x27,16,2);
@@ -35,14 +36,16 @@ float get_distance();
 int buttonPressed();
 void mainMenu();
 void etalonnage();
+void go();
 
 
 void setup() {
   pinMode(button1, INPUT);pinMode(button2, INPUT);pinMode(button3, INPUT);pinMode(button4, INPUT);
   pinMode(button5, INPUT);pinMode(button6, INPUT);pinMode(led1, OUTPUT);pinMode(buzzer, OUTPUT);
+  sSerial.begin(9600);
   lcd.init(); lcd.backlight(); lcd.noBlink(); lcd.noCursor();
-  lcd.home(); lcd.print("//*CLUB CELEC \\\\*");
-  lcd.setCursor(0,1); lcd.print("*****CTTP*****");
+  lcd.home(); lcd.print("***CLUB CELEC ***");
+  lcd.setCursor(0,1); lcd.print("******CTTP******");
   delay(3000);
   lcd.clear();
 }
@@ -51,7 +54,7 @@ void loop() {
   // si le bouton de l'etalonnage est appuyer executer la fonction
   // d'etalonnage sinon acceder au menu principale
   if(ETALON == 1) etalonnage();
-  mainMenu();
+  else mainMenu();
 }
 
 /*
@@ -84,7 +87,7 @@ void updateCounterBWD(){
 Fonction pour avoir la distance
 eq: dist = counter * 100m / 988
 */
-float get_distanceFWD(){
+float get_distance(){
   if(FWD_BWD == 0) updateCounterFWD();
   else updateCounterBWD();
   return (counter * 100) / rapport;
@@ -128,14 +131,15 @@ int buttonPressed(){
 }
 
 void mainMenu(){
-  lcd.clear(); lcd.home();
-  lcd.print("Distance: ");
-  lcd.setCursor(10,0);lcd.print(get_distanceFWD());lcd.setCursor(15,0);lcd.print("m");
+  //lcd.clear(); 
+  lcd.home();
+  lcd.print("Distance:");
+  lcd.setCursor(9,0);lcd.print(get_distance(), 1);lcd.setCursor(15,0);lcd.print("m");
   lcd.setCursor(0,1);
   lcd.print("A:CL B:Av C:Arr");
-  if(FWD_BWD){lcd.setCursor(10,1); lcd.cursor(); lcd.blink();}
-  else {lcd.setCursor(5,1); lcd.cursor(); lcd.blink();}
-  delay(1);
+  if(FWD_BWD){lcd.setCursor(10,1); lcd.cursor();}
+  else {lcd.setCursor(5,1); lcd.cursor();}
+  delay(LCD_REFRECH);
   switch (buttonPressed()){
   case 1:
     counter = 0;
@@ -159,20 +163,25 @@ void mainMenu(){
 
 void etalonnage(){
   lcd.noBlink(); lcd.noCursor(); lcd.clear(); lcd.home();
-  lcd.print("/**Etalonnage**\\");
+  lcd.print("***Etalonnage***");
   lcd.setCursor(0,1);
   lcd.print("A:Go  B:OK  C:Re");
-  delay(1);
+  delay(LCD_REFRECH);
+  lcd.noBlink(); lcd.noCursor(); lcd.clear(); lcd.home();
   switch (buttonPressed()){
   case 1: //Bouton Go appuyer
     go();
     break;
   case 2: //Bouton OK appuyer
     rapport = (rapport + counter) / 2;
+    lcd.setCursor(5,1); lcd.cursor(); lcd.blink();
+    delay(1000);
     //sauvegarder rapport sur EEPROM
     break;
   case 3:
     counter = 0;
+    lcd.setCursor(11,1); lcd.cursor(); lcd.blink();
+    delay(1000);
     break;
   case 4:
     ETALON = 0;
@@ -188,20 +197,25 @@ void go(){
   ETALON = 0;
   GO_EXIT = 0;
   while (1){
-    lcd.clear(); lcd.home();
-    lcd.print("Etalonnage:");
-    lcd.setCursor(10,0);lcd.print(get_distanceFWD());lcd.setCursor(15,0);lcd.print("m");
+    lcd.home();
+    lcd.print("Etln100m:");
+    lcd.setCursor(9,0);lcd.print(get_distance(), 1);lcd.setCursor(15,0);lcd.print("m");
     lcd.setCursor(0,1); lcd.cursor(); lcd.blink();
     lcd.print("A:GO  B:OK  C:Re");
+    delay(LCD_REFRECH);
 
     switch (buttonPressed())
     {
     case 2:
       rapport = (rapport + counter) / 2;
       GO_EXIT = 1;
+      lcd.setCursor(6,1); lcd.cursor(); lcd.blink();
+      delay(1000);
       break;
     case 3:
       counter = 0;
+      lcd.setCursor(12,1); lcd.cursor(); lcd.blink();
+      delay(1000);
       break;
     case 4:
       ETALON = 0;
