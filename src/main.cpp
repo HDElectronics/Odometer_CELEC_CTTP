@@ -19,7 +19,7 @@
 
 //Instances
 LiquidCrystal_I2C lcd(0x27,16,2);
-SoftwareSerial sSerial(RX_BT, TX_BT);
+SoftwareSerial BLE(RX_BT, TX_BT);
 
 //Variables
 bool state, prev_state;
@@ -42,7 +42,8 @@ void go();
 void setup() {
   pinMode(button1, INPUT);pinMode(button2, INPUT);pinMode(button3, INPUT);pinMode(button4, INPUT);
   pinMode(button5, INPUT);pinMode(button6, INPUT);pinMode(led1, OUTPUT);pinMode(buzzer, OUTPUT);
-  sSerial.begin(9600);
+  BLE.begin(9600);
+  BLE.println("CLUB CELEC *** CTTP");
   lcd.init(); lcd.backlight(); lcd.noBlink(); lcd.noCursor();
   lcd.home(); lcd.print("***CLUB CELEC ***");
   lcd.setCursor(0,1); lcd.print("******CTTP******");
@@ -137,6 +138,7 @@ void mainMenu(){
   lcd.setCursor(9,0);lcd.print(get_distance(), 1);lcd.setCursor(15,0);lcd.print("m");
   lcd.setCursor(0,1);
   lcd.print("A:CL B:Av C:Arr");
+  BLE.print("Distance: ");BLE.println(get_distance());
   if(FWD_BWD){lcd.setCursor(10,1); lcd.cursor();}
   else {lcd.setCursor(5,1); lcd.cursor();}
   delay(LCD_REFRECH);
